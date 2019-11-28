@@ -8,9 +8,27 @@
       autocomplete="on"
       label-position="left"
     >
-
       <div class="title-container">
-        <h3 class="title">Login Form</h3>
+        <h3 class="title">{{ $t("login.title") }}</h3>
+        <div class="languageContent">
+          <el-dropdown
+            trigger="click"
+            class="cusLanguage"
+            @command="handleCommand"
+          >
+            <!-- <span class="el-dropdown-link">
+              {{ $t("login.language") }}
+            </span> -->
+            <svg-icon
+              icon-class="language"
+              class="el-dropdown-link "
+            />
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="en">English</el-dropdown-item>
+              <el-dropdown-item command="zh">中文</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </div>
       </div>
 
       <el-form-item prop="username">
@@ -80,7 +98,7 @@
         <el-button
           class="thirdparty-button"
           type="primary"
-          @click="showDialog=true"
+          @click="showDialog = true"
         >
           Or connect with
         </el-button>
@@ -91,65 +109,66 @@
       title="Or connect with"
       :visible.sync="showDialog"
     >
-      Can not be simulated on local, so please combine you own business simulation! ! !
-      <br>
-      <br>
-      <br>
+      Can not be simulated on local, so please combine you own business
+      simulation! ! !
+      <br />
+      <br />
+      <br />
       <social-sign />
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { validUsername } from '@/utils/validate'
-import SocialSign from './components/SocialSignin'
-
+import { validUsername } from "@/utils/validate";
+import SocialSign from "./components/SocialSignin";
+import Cookies from "js-cookie";
 export default {
-  name: 'Login',
+  name: "Login",
   components: { SocialSign },
   data() {
     const validateUsername = (rule, value, callback) => {
       if (!validUsername(value)) {
-        callback(new Error('Please enter the correct user name'))
+        callback(new Error("Please enter the correct user name"));
       } else {
-        callback()
+        callback();
       }
-    }
+    };
     const validatePassword = (rule, value, callback) => {
       if (value.length < 6) {
-        callback(new Error('The password can not be less than 6 digits'))
+        callback(new Error("The password can not be less than 6 digits"));
       } else {
-        callback()
+        callback();
       }
-    }
+    };
     return {
       loginForm: {
-        username: 'admin',
-        password: '111111'
+        username: "admin",
+        password: "111111"
       },
       loginRules: {
         username: [
-          { required: true, trigger: 'blur', validator: validateUsername }
+          { required: true, trigger: "blur", validator: validateUsername }
         ],
         password: [
-          { required: true, trigger: 'blur', validator: validatePassword }
+          { required: true, trigger: "blur", validator: validatePassword }
         ]
       },
-      passwordType: 'password',
+      passwordType: "password",
       capsTooltip: false,
       loading: false,
       showDialog: false,
       redirect: undefined,
       otherQuery: {}
-    }
+    };
   },
   watch: {
     $route: {
       handler: function(route) {
-        const query = route.query
+        const query = route.query;
         if (query) {
-          this.redirect = query.redirect
-          this.otherQuery = this.getOtherQuery(query)
+          this.redirect = query.redirect;
+          this.otherQuery = this.getOtherQuery(query);
         }
       },
       immediate: true
@@ -159,71 +178,76 @@ export default {
     // window.addEventListener('storage', this.afterQRScan)
   },
   mounted() {
-    if (this.loginForm.username === '') {
-      this.$refs.username.focus()
-    } else if (this.loginForm.password === '') {
-      this.$refs.password.focus()
+    if (this.loginForm.username === "") {
+      this.$refs.username.focus();
+    } else if (this.loginForm.password === "") {
+      this.$refs.password.focus();
     }
   },
   destroyed() {
     // window.removeEventListener('storage', this.afterQRScan)
   },
   methods: {
+    handleCommand(command) {
+      this.$message("click on item " + command);
+      this.$i18n.locale = command;
+      Cookies.set("language", command, { expires: 7 });
+    },
     checkCapslock({ shiftKey, key } = {}) {
       if (key && key.length === 1) {
         if (
-          (shiftKey && (key >= 'a' && key <= 'z')) ||
-          (!shiftKey && (key >= 'A' && key <= 'Z'))
+          (shiftKey && key >= "a" && key <= "z") ||
+          (!shiftKey && key >= "A" && key <= "Z")
         ) {
-          this.capsTooltip = true
+          this.capsTooltip = true;
         } else {
-          this.capsTooltip = false
+          this.capsTooltip = false;
         }
       }
-      if (key === 'CapsLock' && this.capsTooltip === true) {
-        this.capsTooltip = false
+      if (key === "CapsLock" && this.capsTooltip === true) {
+        this.capsTooltip = false;
       }
     },
     showPwd() {
-      if (this.passwordType === 'password') {
-        this.passwordType = ''
+      if (this.passwordType === "password") {
+        this.passwordType = "";
       } else {
-        this.passwordType = 'password'
+        this.passwordType = "password";
       }
       this.$nextTick(() => {
-        this.$refs.password.focus()
-      })
+        this.$refs.password.focus();
+      });
     },
     handleLogin() {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
-          this.loading = true
+          this.loading = true;
           this.$store
-            .dispatch('user/login', this.loginForm)
+            .dispatch("user/login", this.loginForm)
             .then(() => {
-              console.log('登录请求成功返回')
+              console.log("登录请求成功返回");
               this.$router.push({
-                path: this.redirect || '/',
+                path: this.redirect || "/",
                 query: this.otherQuery
-              })
-              this.loading = false
+              });
+              this.loading = false;
             })
             .catch(() => {
-              this.loading = false
-            })
+              this.loading = false;
+            });
         } else {
-          console.log('error submit!!')
-          return false
+          console.log("error submit!!");
+          return false;
         }
-      })
+      });
     },
     getOtherQuery(query) {
       return Object.keys(query).reduce((acc, cur) => {
-        if (cur !== 'redirect') {
-          acc[cur] = query[cur]
+        if (cur !== "redirect") {
+          acc[cur] = query[cur];
         }
-        return acc
-      }, {})
+        return acc;
+      }, {});
     }
     // afterQRScan() {
     //   if (e.key === 'x-admin-oauth-code') {
@@ -244,7 +268,7 @@ export default {
     //   }
     // }
   }
-}
+};
 </script>
 
 <style lang="scss">
@@ -290,6 +314,11 @@ $cursor: #fff;
     background: rgba(0, 0, 0, 0.1);
     border-radius: 5px;
     color: #454545;
+  }
+  .cusLanguage {
+    float: right;
+    bottom: 30px;
+    font-size: 20px;
   }
 }
 </style>
